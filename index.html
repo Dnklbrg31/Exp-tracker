@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXP Counter - Fantasy RPG Edition</title>
+  <style>
+    body {
+      background: #0e0e1a;
+      color: #fff;
+      font-family: 'Garamond', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      margin-bottom: 30px;
+    }
+
+    .ring {
+      stroke-dasharray: 628;
+      stroke-dashoffset: 628;
+      transition: stroke-dashoffset 0.8s ease, filter 1s ease;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      filter: drop-shadow(0 0 12px #44ffee);
+    }
+
+    .ring.levelup-flare {
+      animation: pulseRing 1.5s ease-in-out;
+    }
+
+    @keyframes pulseRing {
+      0% { filter: drop-shadow(0 0 10px #ff0) brightness(1.5); }
+      50% { filter: drop-shadow(0 0 20px #ffa500) brightness(2.5); }
+      100% { filter: drop-shadow(0 0 10px #44ffee) brightness(1); }
+    }
+
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .level-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      text-align: center;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      width: 120px;
+    }
+
+    .level-up-message {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, #fff8aa, #ffaa00);
+      color: #2e0e00;
+      padding: 16px 24px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #ffaa00;
+      opacity: 0;
+      animation: none;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .celebrate {
+      animation: fadeCelebrate 4s ease-in-out forwards;
+    }
+
+    @keyframes fadeCelebrate {
+      0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+      10% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      25% { transform: translate(-50%, -50%) scale(1); }
+      90% { opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ring-container">
+    <svg width="250" height="250">
+      <circle cx="125" cy="125" r="100" stroke="#444" stroke-width="20" fill="none" />
+      <circle class="ring" cx="125" cy="125" r="100" stroke="#44ffee" stroke-width="20" fill="none" />
+    </svg>
+    <div class="level-text" id="levelText">EXP: 0 / 10</div>
+    <div class="level-up-message" id="levelUpMessage"></div>
+  </div>
+
+  <input type="number" id="expInput" placeholder="+EXP Gained" />
+
+  <script>
+    let currentEXP = 0;
+    let currentLevel = 1;
+    let expToNext = 10;
+
+    const expInput = document.getElementById("expInput");
+    const levelText = document.getElementById("levelText");
+    const ring = document.querySelector(".ring");
+    const messageBox = document.getElementById("levelUpMessage");
+
+    const flavorTexts = [
+      "You feel a surge of arcane might!",
+      "Your soul resonates with newfound power!",
+      "A faint choir of angels acknowledges your mediocre achievement!",
+      "You’ve ascended… slightly.",
+      "The goblins whisper your name with mild concern."
+    ];
+
+    expInput.addEventListener("change", () => {
+      const gained = parseInt(expInput.value);
+      if (!isNaN(gained)) {
+        currentEXP += gained;
+        while (currentEXP >= expToNext) {
+          currentEXP -= expToNext;
+          currentLevel++;
+          expToNext = Math.floor(expToNext * 1.2 + 5);
+          triggerLevelUp();
+        }
+        updateRing();
+        expInput.value = "";
+      }
+    });
+
+    function updateRing() {
+      const percent = currentEXP / expToNext;
+      const offset = 628 - 628 * percent;
+      ring.style.strokeDashoffset = offset;
+      levelText.textContent = `EXP: ${currentEXP} / ${expToNext}`;
+    }
+
+    function triggerLevelUp() {
+      const message = flavorTexts[Math.floor(Math.random() * flavorTexts.length)];
+      messageBox.textContent = `LEVEL ${currentLevel}: ${message}`;
+      messageBox.classList.remove("celebrate");
+      void messageBox.offsetWidth;
+      messageBox.classList.add("celebrate");
+
+      ring.classList.remove("levelup-flare");
+      void ring.offsetWidth;
+      ring.classList.add("levelup-flare");
+    }
+
+    updateRing();
+  </script>
+</body>
+</html>
